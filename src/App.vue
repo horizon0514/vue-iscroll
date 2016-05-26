@@ -1,19 +1,38 @@
 <template>
   <div id="app">
-    <h1>{{ msg }}</h1>
+    <scroll :bottom-height="btnHeight" :use-pull-down="true">
+      <ul></ul>
+    </scroll>
+    <button class="btn" style="'height':btnHeight">button</button>
   </div>
 </template>
 
 <script>
+import scroll from './scroll.vue'
 export default {
+  components: {
+    scroll
+  },
   data () {
     return {
-      // note: changing this line won't causes changes
-      // with hot-reload because the reloaded component
-      // preserves its current state and we are modifying
-      // its initial state.
-      msg: 'Hello Vue!'
+      btnHeight: '48px'
     }
+  },
+  ready(){
+    setTimeout(()=>{
+      let html = '';
+      for(let i=0;i<20;i++){
+        html += '<li>'+i+'</li>';
+      }
+      document.querySelector('ul').innerHTML = html;
+      this.$broadcast('scroll-reset','container');
+    },2000)
+  },
+  methods: {
+    onScrollEnd(){
+      console.log('end')
+    },
+
   }
 }
 </script>
@@ -21,5 +40,26 @@ export default {
 <style>
 body {
   font-family: Helvetica, sans-serif;
+  overflow:hidden;
+}
+ul{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+li{
+  height: 40px;
+  background: #d45;
+  border: 1px solid #f5f5f5;
+  border-width: 1px 0 0 0;
+}
+.btn{
+  height: 48px;
+  position: absolute;
+  left: 0;
+  width: 100%;
+  bottom: 0;
+  background: green;
+  border: none;
 }
 </style>
