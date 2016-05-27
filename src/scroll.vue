@@ -9,7 +9,7 @@
 </template>
 <script>
 	var iScroll = require('iscroll/build/iscroll-probe');
-	import { Pulldown,Pullup, addClass,removeClass,containClass } from './pull.js'
+	import { emitter,Pulldown,Pullup, addClass,removeClass,containClass } from './pull.js'
 	var pullThreshold = 5;
 	const pulldownDefaultConfig = () => ({
 	  content: 'Pull Down To Refresh',
@@ -83,8 +83,10 @@
 	      let config = Object.assign(pulldownDefaultConfig(), this.pulldownConfig);
 	      config.container = this.$el.querySelector('.scroller');
 	      //构建pulldown的HTML
-	      var pulldown = new Pulldown(config);
-
+	      var pulldown = this.pulldown = new Pulldown(config);
+	      pulldown.on('loading',()=>{
+	      	this.$dispatch('pulldown:loading', this.uuid)
+	      })
 	      var pulldownOffset = pulldown.element.offsetHeight;
 
 	    }
@@ -94,7 +96,7 @@
 	    	config.container = this.$el.querySelector('.selector');
 
 	    	//构建pullup的HTML
-	    	var pullup = new Pullup(config);
+	    	var pullup = this.pullup = new Pullup(config);
 
 	    	var pullupOffset = pullup.element.offsetHeight;
 	    }
@@ -169,7 +171,29 @@
 			'scroll-reset': function(uuid){
 				console.log('reset event')
 				this.reset();
-			}
+			},
+			//下拉刷新，重置iscroll
+			'pulldown:reset': function (uuid) {
+	      if (true) {
+	        this.pulldown.reset(() => {
+	          // repaint
+	          this.reset()
+	        })
+	      }
+	    },
+	    //上拉加载，重置iscroll
+	    'pullup:reset': function (uuid) {
+	      if (uuid === this.uuid) {
+	        this.pullup.complete()
+	        this.reset()
+	      }
+	    },
+	    //上拉加载，数据加载完毕
+	    'pullup:done': function (uuid) {
+	      if (uuid === this.uuid) {
+	        this._xscroll.unplug(this.pullup)
+	      }
+	    }
 		},
 		beforeDestroy(){
 			this._scroller.destroy();

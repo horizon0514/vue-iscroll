@@ -1,3 +1,6 @@
+	import Emitter from 'tiny-emitter'
+
+	var emitter = new Emitter();
 	function addClass(element,className){
 		element.classList.add(className);
 	}
@@ -69,10 +72,17 @@
 			this.pulldown.style.transitionDuration = '';
 			this._changeStatus(status);
 
-			//ajax to fetch data
-			setTimeout(()=>{
-				this._changeStatus('up')
-			},3000)
+			//emit the loading event
+			emitter.emit('loading');
+			
+		}
+		reset(callback){
+			this.pull();
+			
+			callback();
+		}
+		on(event,callback){
+			emitter.on(event,callback);
 		}
 		
 	}
@@ -105,6 +115,7 @@
 		}
 	}
 	export {
+		emitter,
 		Pulldown,
 		Pullup,
 		addClass,

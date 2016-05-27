@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <scroll :bottom-height="btnHeight" :use-pulldown="true">
+    <scroll :bottom-height="btnHeight" :use-pulldown="true" @pulldown:loading="loading">
       <ul></ul>
     </scroll>
     <button class="btn" style="'height':btnHeight">button</button>
@@ -32,6 +32,11 @@ export default {
     onScrollEnd(){
       console.log('end')
     },
+    loading(){
+      setTimeout(()=>{
+        this.$broadcast('pulldown:reset')
+      },3000)
+    }
 
   }
 }
