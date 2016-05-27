@@ -32,9 +32,10 @@ export default {
     onScrollEnd(){
       console.log('end')
     },
-    loading(){
+    loading(uuid){
       setTimeout(()=>{
-        this.$broadcast('pulldown:reset')
+        console.log('loading data')
+        this.$broadcast('pulldown:reset',uuid)
       },3000)
     }
 

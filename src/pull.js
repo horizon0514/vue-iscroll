@@ -51,12 +51,11 @@
 		_changeStatus(status){
 			let prevVal = this.status;
 			this.status = status;
-			console.log("pre:"+ prevVal+";after:"+status)
 			removeClass(this.pulldown, this.cfg.clsPrefix + prevVal)
 			addClass(this.pulldown, this.cfg.clsPrefix + status);
 			
 			//状态变更，更改HTML
-			this.pulldown.innerHTML = this.cfg[this.status + "Content"] || this.cfg.content;console.log(this.pulldown.innerHTML)
+			this.pulldown.innerHTML = this.cfg[this.status + "Content"] || this.cfg.content;
 		}
 		pull(){
 			let status = 'up';
@@ -78,7 +77,7 @@
 		}
 		reset(callback){
 			this.pull();
-			
+
 			callback();
 		}
 		on(event,callback){

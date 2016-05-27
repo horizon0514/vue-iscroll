@@ -130,7 +130,6 @@
 	    	}
 
 	    	if (that.usePulldown) {
-	    		console.log('margin-top:'+pulldown.pulldown.offsetHeight)
 					if (this.y > pulldownOffset+pullThreshold && !containClass(pulldown.element,'vue-iscroll-pulldown-down')) {
 						pulldown.release();
 						console.log('call release')
@@ -160,11 +159,12 @@
 		},
 
 		methods: {
-			reset(){
-				console.log('reset');
+			reset(timeout=0){
+				console.log('reset');console.log(this._scroller);
 				this._scroller&&setTimeout(()=>{
+					console.log('refresh')
 					this._scroller.refresh();
-				},0);
+				},timeout);
 			}
 		},
 		events:{
@@ -174,10 +174,10 @@
 			},
 			//下拉刷新，重置iscroll
 			'pulldown:reset': function (uuid) {
-	      if (true) {
+	      if (uuid === this.uuid) {
 	        this.pulldown.reset(() => {
-	          // repaint
-	          this.reset()
+	        	//repaint,timeout需要设置长一点
+	          this.reset(1000);
 	        })
 	      }
 	    },
