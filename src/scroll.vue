@@ -8,14 +8,15 @@
 	</div>
 </template>
 <script>
-	var iScroll = require('iscroll/build/iscroll-probe')
-
+	var iScroll = require('iscroll/build/iscroll-probe');
+	import { Pulldown,Pullup, addClass,removeClass,containClass } from './pull.js'
+	var pullThreshold = 5;
 	const pulldownDefaultConfig = () => ({
 	  content: 'Pull Down To Refresh',
 	  height: 60,
 	  autoRefresh: false,
-	  downContent: 'Pull Down To Refresh',
-	  upContent: 'Release To Refresh',
+	  upContent: 'Pull Down To Refresh',
+	  downContent: 'Release To Refresh',
 	  loadingContent: 'Loading...',
 	  clsPrefix: 'vue-iscroll-pulldown-'
 	})
@@ -30,44 +31,7 @@
 	  clsPrefix: 'vue-iscroll-pullup-'
 	})
 
-	
-	class pullupRender{
-		constructor(cfg){
-			if (self.__isRender) return;
-			self.__isRender = true;
 
-			this.cfg = cfg;
-			this.render(cfg);
-	
-			return this;
-		}
-		render(cfg){
-			var containerCls = clsPrefix + "container";
-			var height = this.cfg.height;
-			var pullup = this.pullup = document.createElement("div");
-			pullup.className = containerCls;
-			pullup.style.position = "absolute";
-			pullup.style.width = "100%";
-			pullup.style.height = height + "px";
-			pullup.style.bottom = -height + "px";
-			cfg.container.appendChild(pullup);
-
-		}
-		changeStatus(){
-			//绑定触发事件
-			Util.addClass(this.pullup, clsPrefix + this.status);
-			pullup.innerHTML = this.cfg[this.status + "Content"] || this.cfg.content;
-		}
-		pull(){
-			this.status = 'up';
-			changeStatus();
-		}
-		release(){
-			this.status = 'down';
-			changeStatus();
-		}
-		
-	}
 	export default{
 		name: "vue-iscroller",
 		props:{
@@ -106,16 +70,33 @@
 	    }
 
 			this._scroller = new iScroll('.wrapper',{
-				probeType: 2,
+				probeType:2,
+				bounceTime: 250,
+				bounceEasing: 'quadratic',
+				mouseWheel:false,
 				scrollbars:true,
+				fadeScrollbars:true,
+				interactiveScrollbars:false
 			});
-			
 			if (this.usePulldown) {
 	      // if use slot=pulldown
 	      let config = Object.assign(pulldownDefaultConfig(), this.pulldownConfig);
-	      config.container = this.$el;
+	      config.container = this.$el.querySelector('.scroller');
 	      //构建pulldown的HTML
-	      pulldownRender(config);
+	      var pulldown = new Pulldown(config);
+
+	      var pulldownOffset = pulldown.element.offsetHeight;
+
+	    }
+
+	    if(this.usePullup){
+	    	let config = Object.assign(pullupDefaultConfig, this.pullupConfig);
+	    	config.container = this.$el.querySelector('.selector');
+
+	    	//构建pullup的HTML
+	    	var pullup = new Pullup(config);
+
+	    	var pullupOffset = pullup.element.offsetHeight;
 	    }
 
 	    let startPos = null;
@@ -123,9 +104,10 @@
 	    	startPos = this.y;
 	    })
 
+	    var that = this;//保存this
 	    
-	    this._scroller.on('scroll',function(){
-	    	if(this.usePulldown||this.usePullUp){
+	    that._scroller.on('scroll',function(){
+	    	if(that.usePulldown||that.usePullUp){
 	    		/* 
 	    			'scroll' called, but scroller is not moving!
 						Probably because the content inside wrapper is small and fits the screen, so drag/scroll is disabled by iScroll.
@@ -134,30 +116,44 @@
 					*/
 	    		this.hasVerticalScroll=true;
 	    		startPos = -1000;
-	    	} else if ( startPos===-1000 && ((!usePullup && (this.y<0)) || ((!usePulldown) && (this.y>0))) ){
+	    	} else if ( startPos===-1000 && ((!that.usePullup && (this.y<0)) || ((!that.usePulldown) && (this.y>0))) ){
 	    		/* 
 	    			Scroller was not moving at first (and the trick above was applied), but now it's moving in the wrong direction.
 						I.e. the user is either scrolling up while having no "pull-up-bar",
 						or scrolling down while having no "pull-down-bar" => Disable the trick again and reset values...
 					*/
 					this.hasVerticalScroll=false;
-					scrollStartPos=0;
+					startPos=0;
 					this.scrollBy(0,-this.y, 0);//Adjust scrolling position to undo this "invalid" movement
 	    	}
 
-	    	if (usePulldown) {
-					if (this.y > pullDownOffset+pullThreshold && !pullDownEl.className.match('flip')) {
-						showPullDownElNow('flip');
-						this.scrollBy(0,-pullDownOffset, 0);	// Adjust scrolling position to match the change in pullDownEl's margin-top
-						pullDownEl.querySelector('.pullDownLabel').innerHTML = 'Release to refresh...';
-					} else if (this.y < 0 && pullDownEl.className.match('flip')) { // User changes his mind...
-						hidePullDownEl(0,false);
-						this.scrollBy(0,pullDownOffset, 0);	// Adjust scrolling position to match the change in pullDownEl's margin-top
-						pullDownEl.querySelector('.pullDownLabel').innerHTML = 'Pull down to refresh...';
+	    	if (that.usePulldown) {
+	    		console.log('margin-top:'+pulldown.pulldown.offsetHeight)
+					if (this.y > pulldownOffset+pullThreshold && !containClass(pulldown.element,'vue-iscroll-pulldown-down')) {
+						pulldown.release();
+						console.log('call release')
+						this.scrollBy(0,-pulldownOffset, 0);// Adjust scrolling position to match the change in pullDownEl's margin-top
+					} else if (this.y < 0 && containClass(pulldown.element,'vue-iscroll-pulldown-down')) { // User changes his mind...
+						pulldown.pull();
+						this.scrollBy(0,pulldownOffset, 0);	// Adjust scrolling position to match the change in pullDownEl's margin-top
 					}
+
 				}
 
 	    })
+
+	    that._scroller.on('scrollEnd',function() {
+				if ( pulldown && containClass(pulldown.element,'vue-iscroll-pulldown-down')) {
+					console.log('scroll end')
+					pulldown.loading();
+				}
+				
+				if (startPos===-1000) {
+					// If scrollStartPos=-1000: Recalculate the true value of "hasVerticalScroll" as it may have been
+					// altered in 'scroll' to enable pull-to-refresh/load when the content fits the screen...
+					this.hasVerticalScroll = this.options.scrollY && this.maxScrollY < 0;
+				}
+			});
 
 		},
 
@@ -171,7 +167,7 @@
 		},
 		events:{
 			'scroll-reset': function(uuid){
-				console.log('reser')
+				console.log('reset event')
 				this.reset();
 			}
 		},
@@ -182,7 +178,7 @@
 		
 	}
 </script>
-<style scoped>
+<style>
 	.wrapper{
 		position: absolute;
     z-index: 1;
@@ -196,4 +192,20 @@
 		position: absolute;
 		width: 100%;
 	}
+	.vue-iscroll-pulldown-container{
+		margin-top: 0;
+		background: #fff;
+		transition: all linear 250ms;
+	}
+	.vue-iscroll-pulldown-up{
+		margin-top: -60px;
+	}
+	.vue-iscroll-pulldown-down{
+			transition: none;
+	}
+	.vue-iscroll-pulldown-loading{
+		transition: none;
+	}
+
+
 </style>

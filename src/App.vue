@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <scroll :bottom-height="btnHeight" :use-pull-down="true">
+    <scroll :bottom-height="btnHeight" :use-pulldown="true">
       <ul></ul>
     </scroll>
     <button class="btn" style="'height':btnHeight">button</button>
@@ -41,6 +41,7 @@ export default {
 body {
   font-family: Helvetica, sans-serif;
   overflow:hidden;
+  background: #f5f5f5;
 }
 ul{
   list-style: none;
@@ -51,7 +52,7 @@ li{
   height: 40px;
   background: #d45;
   border: 1px solid #f5f5f5;
-  border-width: 1px 0 0 0;
+  border-width: 0 0 1px 0 ;
 }
 .btn{
   height: 48px;
