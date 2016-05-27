@@ -9,7 +9,7 @@
 </template>
 <script>
 	var iScroll = require('iscroll/build/iscroll-probe');
-	import { emitter,Pulldown,Pullup, addClass,removeClass,containClass } from './pull.js'
+	import { Pulldown,Pullup, addClass,removeClass,containClass } from './pull.js'
 	var pullThreshold = 5;
 	const pulldownDefaultConfig = () => ({
 	  content: 'Pull Down To Refresh',
@@ -23,10 +23,10 @@
 	const pullupDefaultConfig = () => ({
 	  content: 'Pull Up To Refresh',
 	  pullUpHeight: 60,
-	  height: 40,
+	  height: 60,
 	  autoRefresh: false,
-	  downContent: 'Release To Refresh',
-	  upContent: 'Pull Up To Refresh',
+	  upContent: 'Release To Refresh',
+	  downContent: 'Pull Up To Refresh',
 	  loadingContent: 'Loading...',
 	  clsPrefix: 'vue-iscroll-pullup-'
 	})
@@ -48,6 +48,10 @@
 				default: false
 			},
 			pulldownConfig: {
+				type: Object,
+				default: ()=>{}
+			},
+			pullupConfig: {
 				type: Object,
 				default: ()=>{}
 			}
@@ -82,6 +86,10 @@
 	      // if use slot=pulldown
 	      let config = Object.assign(pulldownDefaultConfig(), this.pulldownConfig);
 	      config.container = this.$el.querySelector('.scroller');
+
+	      if(!config.container){
+	      	throw new Error('pulldown has no container')
+	      }
 	      //构建pulldown的HTML
 	      var pulldown = this.pulldown = new Pulldown(config);
 	      pulldown.on('loading',()=>{
@@ -92,9 +100,12 @@
 	    }
 
 	    if(this.usePullup){
-	    	let config = Object.assign(pullupDefaultConfig, this.pullupConfig);
-	    	config.container = this.$el.querySelector('.selector');
-
+	    	let config = Object.assign(pullupDefaultConfig(), this.pullupConfig);
+	    	config.container = this.$el.querySelector('.scroller');
+	    	
+	    	if(!config.container){
+	    		throw new Error('pullup has no container')
+	    	}
 	    	//构建pullup的HTML
 	    	var pullup = this.pullup = new Pullup(config);
 
@@ -109,7 +120,7 @@
 	    var that = this;//保存this
 	    
 	    that._scroller.on('scroll',function(){
-	    	if(that.usePulldown||that.usePullUp){
+	    	if(that.usePulldown||that.usePullup){
 	    		/* 
 	    			'scroll' called, but scroller is not moving!
 						Probably because the content inside wrapper is small and fits the screen, so drag/scroll is disabled by iScroll.
@@ -141,12 +152,32 @@
 
 				}
 
+				if (that.usePullup) {
+				
+					if (this.y < (this.maxScrollY - pullupOffset + pullThreshold) && !containClass(pullup.element,'vue-iscroll-pullup-up')) {
+						pullup.release();
+						console.log('call release');
+
+					} else if (this.y > (this.maxScrollY -pullupOffset + pullThreshold) && containClass(pullup.element,'vue-iscroll-pullup-up')){
+						this.scrollBy(0,pullupOffset, 0);
+						pullup.push();
+					}
+				}
+
+
 	    })
 
 	    that._scroller.on('scrollEnd',function() {
 				if ( pulldown && containClass(pulldown.element,'vue-iscroll-pulldown-down')) {
 					console.log('scroll end')
 					pulldown.loading();
+				}
+
+				if ( pullup && containClass(pullup.element,'vue-iscroll-pullup-up')) {
+					console.log('scroll end');console.log(this)
+					this.scrollBy(0,-pullupOffset, 0);
+					pullup.loading();
+					
 				}
 				
 				if (startPos===-1000) {
@@ -191,7 +222,7 @@
 	    //上拉加载，数据加载完毕
 	    'pullup:done': function (uuid) {
 	      if (uuid === this.uuid) {
-	        this._xscroll.unplug(this.pullup)
+	        this._iscroll.unplug(this.pullup)
 	      }
 	    }
 		},
@@ -216,7 +247,7 @@
 		position: absolute;
 		width: 100%;
 	}
-	.vue-iscroll-pulldown-container{
+	.vue-iscroll-pulldown-container,.vue-iscroll-pullup-container{
 		margin-top: 0;
 		background: #fff;
 		transition: all linear 250ms;
@@ -229,6 +260,17 @@
 	}
 	.vue-iscroll-pulldown-loading{
 		transition: none;
+	}
+
+	/* pullup */
+	.vue-iscroll-pullup-loading{
+		bottom: -60px;
+	}
+	.vue-iscroll-pullup-down{
+		bottom: -60px;
+	}
+	.vue-iscroll-pullup-up{
+		bottom: -60px;
 	}
 
 

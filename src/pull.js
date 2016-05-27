@@ -1,6 +1,6 @@
 	import Emitter from 'tiny-emitter'
 
-	var emitter = new Emitter();
+	
 	function addClass(element,className){
 		element.classList.add(className);
 	}
@@ -29,7 +29,9 @@
 
 			this.cfg = cfg;
 			this.render(cfg);
-	
+			
+			this.emitter = new Emitter();
+
 			return this;
 		}
 		render(cfg){
@@ -72,28 +74,29 @@
 			this._changeStatus(status);
 
 			//emit the loading event
-			emitter.emit('loading');
+			this.emitter.emit('loading');
 			
 		}
 		reset(callback){
 			this.pull();
 
-			callback();
+			if(callback)callback();
 		}
 		on(event,callback){
-			emitter.on(event,callback);
+			this.emitter.on(event,callback);
 		}
 		
 	}
 
 	class Pullup {
 		constructor(cfg){
-			if (self.__isRender) return;
-			self.__isRender = true;
+			if (this.__isRender) return;
+			this.__isRender = true;
 
 			this.cfg = cfg;
 			this.render(cfg);
-	
+			
+			this.emitter = new Emitter();
 			return this;
 		}
 		render(cfg){
@@ -101,20 +104,59 @@
 			let height = cfg.height || 60;
 			let pullup = this.pullup = this.element = document.createElement("div");
 			pullup.className = containerCls;
+			pullup.style.position = "absolute";
 			pullup.style.width = "100%";
-			pullup.style.height = height + "px";
-			pullup.style.lineHeight = height + "px";
+			pullup.style.height = height + "px";	
+			pullup.style.lineHeight = height + "px";		
 			pullup.style.textAlign = "center";
 
-			addClass(pullup,cfg.clsPrefix+'down');
+			cfg.container.appendChild(pullup);
+
 			this.status = 'down';
+			addClass(pullup, cfg.clsPrefix + this.status);
 			cfg.container.appendChild(pullup);
 
 			pullup.innerHTML = cfg["content"];
 		}
+		_changeStatus(status){
+			let prevVal = this.status;
+			this.status = status;
+			removeClass(this.pullup, this.cfg.clsPrefix + prevVal)
+			addClass(this.pullup, this.cfg.clsPrefix + status);
+			
+			//状态变更，更改HTML
+			this.pullup.innerHTML = this.cfg[this.status + "Content"] || this.cfg.content;
+		}
+		reset(callback){
+			this.push();
+			if(callback)callback();
+		}
+		push(){
+			let status = 'down';
+			this._changeStatus(status);
+		}
+		release(){
+			let status = 'up';
+			this._changeStatus(status);
+		}
+		loading(){
+			let status = 'loading';
+			this.pullup.style.transitionDuration = '';
+			this._changeStatus(status);
+
+			//emit the loading event
+			//this.emitter.emit('loading');
+			setTimeout(()=>{
+				this.reset();
+			},5000)
+			
+		}
+		on(event,callback){
+			this.emitter.on(event,callback);
+		}
+
 	}
 	export {
-		emitter,
 		Pulldown,
 		Pullup,
 		addClass,

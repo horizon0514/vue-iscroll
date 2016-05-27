@@ -1,10 +1,10 @@
 <template>
   <div id="app">
-    <scroll :bottom-height="btnHeight" :use-pulldown="true" @pulldown:loading="loading">
+    <scroll :bottom-height="btnHeight" :use-pulldown="true" @pulldown:loading="loading" :use-pullup="true">
       <ul></ul>
     </scroll>
-    <button class="btn" style="'height':btnHeight">button</button>
-  </div>
+<!--     <button class="btn" style="'height':btnHeight">button</button>
+ -->  </div>
 </template>
 
 <script>
@@ -15,7 +15,7 @@ export default {
   },
   data () {
     return {
-      btnHeight: '48px'
+      btnHeight: '0'
     }
   },
   ready(){
