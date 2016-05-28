@@ -40,18 +40,23 @@ export default {
       },3000)
     },
     upLoading(uuid){
-      setTimeout(()=>{
-        console.log('loading data,pull up')
-        this.items.push(12,13,14,15)
-        this.$broadcast('pullup:reset',uuid)
-      },3000)
+      if(this.items.length<15){
+        setTimeout(()=>{
+          console.log('loading data,pull up')
+          this.items.push(12,13,14,15)
+          this.$broadcast('pullup:reset',uuid)
+        },3000)
+      } else {
+        setTimeout(()=>{
+          console.log('loading data,pull up done')
+          this.items.push(100,'done')
+          this.$broadcast('pullup:done',uuid)
+        },3000)
+      }
+      
     },
     upDone(uuid){
-      setTimeout(()=>{
-        console.log('loading data,pull up done')
-        this.items.push(100,'done')
-        this.$broadcast('pullup:done',uuid)
-      },3000)
+      alert('done')
     }
 
   }

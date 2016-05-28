@@ -152,7 +152,7 @@
 		complete(){
 			//数据加载完毕，清除下拉加载
 			let statue = 'complete';
-			cfg.container.removeChild(pullup);
+			this.pullup.remove();
 			this.emitter.emit('complete');
 		}
 		on(event,callback){

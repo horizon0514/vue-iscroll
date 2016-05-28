@@ -112,7 +112,7 @@
 	    		this.$dispatch('pullup:loading',this.uuid)
 	    	})
 	    	pullup.on('complete',()=>{
-	    		this.$dispatch('pullup:done',this.uuid)
+	    		this.$dispatch('pullup:complete',this.uuid)
 	    	})
 	    	var pullupOffset = pullup.element.offsetHeight;
 	    }
@@ -200,7 +200,7 @@
 					this._scroller.refresh();
 				},timeout);
 			},
-			complete(){
+			complete(){ 
 				this.pullup = null; 
 				delete this.pullup;
 	      this.usePullup = false;
@@ -223,14 +223,21 @@
 	    //上拉加载，重置iscroll
 	    'pullup:reset': function (uuid) {
 	      if (uuid === this.uuid) {
-	        this.reset()
+	        this.pullup.reset(() => {
+	        	//repaint,timeout需要设置长一点
+	          this.reset(1000);
+	        })
 	      }
 	    },
 	    //上拉加载，数据加载完毕
-	    'pullup:done': function (uuid) {
-	      if (uuid === this.uuid) {
-	      	this.pullup.complete()
-	        this.complete()
+	    'pullup:done': function () {
+	      if (true) {
+	      	this.pullup.complete(()=>{
+	      		this.reset(1000);
+	      	});
+
+	        this.complete();
+	        
 	      }
 	    }
 		},
