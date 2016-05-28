@@ -104,7 +104,7 @@
 			let height = cfg.height || 60;
 			let pullup = this.pullup = this.element = document.createElement("div");
 			pullup.className = containerCls;
-			pullup.style.position = "absolute";
+			//pullup.style.position = "absolute";
 			pullup.style.width = "100%";
 			pullup.style.height = height + "px";	
 			pullup.style.lineHeight = height + "px";		
@@ -145,11 +145,15 @@
 			this._changeStatus(status);
 
 			//emit the loading event
-			//this.emitter.emit('loading');
-			setTimeout(()=>{
-				this.reset();
-			},5000)
+			this.emitter.emit('loading');
 			
+			
+		}
+		complete(){
+			//数据加载完毕，清除下拉加载
+			let statue = 'complete';
+			cfg.container.removeChild(pullup);
+			this.emitter.emit('complete');
 		}
 		on(event,callback){
 			this.emitter.on(event,callback);

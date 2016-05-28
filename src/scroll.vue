@@ -23,7 +23,7 @@
 	const pullupDefaultConfig = () => ({
 	  content: 'Pull Up To Refresh',
 	  pullUpHeight: 60,
-	  height: 60,
+	  height: 40,
 	  autoRefresh: false,
 	  upContent: 'Release To Refresh',
 	  downContent: 'Pull Up To Refresh',
@@ -108,7 +108,12 @@
 	    	}
 	    	//构建pullup的HTML
 	    	var pullup = this.pullup = new Pullup(config);
-
+	    	pullup.on('loading',()=>{
+	    		this.$dispatch('pullup:loading',this.uuid)
+	    	})
+	    	pullup.on('complete',()=>{
+	    		this.$dispatch('pullup:done',this.uuid)
+	    	})
 	    	var pullupOffset = pullup.element.offsetHeight;
 	    }
 
@@ -156,10 +161,8 @@
 				
 					if (this.y < (this.maxScrollY - pullupOffset + pullThreshold) && !containClass(pullup.element,'vue-iscroll-pullup-up')) {
 						pullup.release();
-						console.log('call release');
 
 					} else if (this.y > (this.maxScrollY -pullupOffset + pullThreshold) && containClass(pullup.element,'vue-iscroll-pullup-up')){
-						this.scrollBy(0,pullupOffset, 0);
 						pullup.push();
 					}
 				}
@@ -175,7 +178,7 @@
 
 				if ( pullup && containClass(pullup.element,'vue-iscroll-pullup-up')) {
 					console.log('scroll end');console.log(this)
-					this.scrollBy(0,-pullupOffset, 0);
+					//this.scrollBy(0,-pullupOffset, 0);
 					pullup.loading();
 					
 				}
@@ -196,6 +199,11 @@
 					console.log('refresh')
 					this._scroller.refresh();
 				},timeout);
+			},
+			complete(){
+				this.pullup = null; 
+				delete this.pullup;
+	      this.usePullup = false;
 			}
 		},
 		events:{
@@ -215,14 +223,14 @@
 	    //上拉加载，重置iscroll
 	    'pullup:reset': function (uuid) {
 	      if (uuid === this.uuid) {
-	        this.pullup.complete()
 	        this.reset()
 	      }
 	    },
 	    //上拉加载，数据加载完毕
 	    'pullup:done': function (uuid) {
 	      if (uuid === this.uuid) {
-	        this._iscroll.unplug(this.pullup)
+	      	this.pullup.complete()
+	        this.complete()
 	      }
 	    }
 		},
@@ -264,13 +272,11 @@
 
 	/* pullup */
 	.vue-iscroll-pullup-loading{
-		bottom: -60px;
+		
 	}
 	.vue-iscroll-pullup-down{
-		bottom: -60px;
 	}
 	.vue-iscroll-pullup-up{
-		bottom: -60px;
 	}
 
 

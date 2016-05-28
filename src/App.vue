@@ -1,7 +1,9 @@
 <template>
   <div id="app">
-    <scroll :bottom-height="btnHeight" :use-pulldown="true" @pulldown:loading="loading" :use-pullup="true">
-      <ul></ul>
+    <scroll :bottom-height="btnHeight" :use-pulldown="true" @pulldown:loading="downLoading" :use-pullup="true" @pullup:loading="upLoading" @pullup:complete="upDone">
+      <ul>
+        <li v-for="item in items" track-by="$index">{{item}}</li>
+      </ul>
     </scroll>
 <!--     <button class="btn" style="'height':btnHeight">button</button>
  -->  </div>
@@ -15,16 +17,14 @@ export default {
   },
   data () {
     return {
-      btnHeight: '0'
+      btnHeight: '0',
+      items: []
     }
   },
   ready(){
     setTimeout(()=>{
-      let html = '';
-      for(let i=0;i<20;i++){
-        html += '<li>'+i+'</li>';
-      }
-      document.querySelector('ul').innerHTML = html;
+      this.items = [1,2,3,4,5,6,7,8,9,10,11];
+      
       this.$broadcast('scroll-reset','container');
     },2000)
   },
@@ -32,10 +32,25 @@ export default {
     onScrollEnd(){
       console.log('end')
     },
-    loading(uuid){
+    downLoading(uuid){
       setTimeout(()=>{
-        console.log('loading data')
+        console.log('loading data,pull down')
+        this.items.unshift(-3,-2,-1,0);
         this.$broadcast('pulldown:reset',uuid)
+      },3000)
+    },
+    upLoading(uuid){
+      setTimeout(()=>{
+        console.log('loading data,pull up')
+        this.items.push(12,13,14,15)
+        this.$broadcast('pullup:reset',uuid)
+      },3000)
+    },
+    upDone(uuid){
+      setTimeout(()=>{
+        console.log('loading data,pull up done')
+        this.items.push(100,'done')
+        this.$broadcast('pullup:done',uuid)
       },3000)
     }
 
